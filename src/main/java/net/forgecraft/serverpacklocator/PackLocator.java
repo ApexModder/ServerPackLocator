@@ -1,10 +1,17 @@
 package net.forgecraft.serverpacklocator;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.net.ConnectException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import java.util.List;
 import net.forgecraft.serverpacklocator.client.ClientSidedPackHandler;
 import net.forgecraft.serverpacklocator.server.ServerSidedPackHandler;
 import net.neoforged.fml.ModLoadingIssue;
+import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.fml.loading.FMLPaths;
-import net.neoforged.neoforgespi.Environment;
 import net.neoforged.neoforgespi.ILaunchContext;
 import net.neoforged.neoforgespi.locating.IDiscoveryPipeline;
 import net.neoforged.neoforgespi.locating.IModFileCandidateLocator;
@@ -13,14 +20,6 @@ import net.neoforged.neoforgespi.locating.ModFileDiscoveryAttributes;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.net.ConnectException;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
-import java.util.List;
-
 public class PackLocator implements IModFileCandidateLocator {
     private static final Logger LOGGER = LogManager.getLogger();
 
@@ -28,7 +27,7 @@ public class PackLocator implements IModFileCandidateLocator {
     public void findCandidates(ILaunchContext launchContext, IDiscoveryPipeline pipeline) {
         LOGGER.info("Loading server pack locator");
 
-        var dist = Environment.get().getDist();
+        var dist = FMLEnvironment.getDist();
         var gameDir = FMLPaths.GAMEDIR.get();
         var splDirectory = gameDir.resolve("spl");
         var configFile = splDirectory.resolve("config.toml");

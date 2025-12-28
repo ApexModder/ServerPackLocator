@@ -8,19 +8,10 @@ import com.mojang.authlib.yggdrasil.ServicesKeyType;
 import com.mojang.authlib.yggdrasil.YggdrasilAuthenticationService;
 import com.mojang.authlib.yggdrasil.response.KeyPairResponse;
 import com.mojang.logging.LogUtils;
-import cpw.mods.modlauncher.ArgumentHandler;
-import cpw.mods.modlauncher.Launcher;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpHeaders;
 import io.netty.handler.codec.http.HttpResponse;
-import net.forgecraft.serverpacklocator.LaunchEnvironmentHandler;
-import net.forgecraft.serverpacklocator.utils.NonceUtils;
-import net.neoforged.api.distmarker.Dist;
-import org.slf4j.Logger;
-
-import javax.annotation.Nullable;
-import java.lang.reflect.Field;
 import java.net.Proxy;
 import java.net.http.HttpRequest;
 import java.nio.ByteBuffer;
@@ -36,6 +27,13 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import javax.annotation.Nullable;
+import net.forgecraft.serverpacklocator.utils.NonceUtils;
+import net.neoforged.fml.loading.FMLEnvironment;
+import net.neoforged.fml.loading.FMLLoader;
+import net.neoforged.fml.loading.ProgramArgs;
+import net.neoforged.fml.loading.progress.StartupNotificationManager;
+import org.slf4j.Logger;
 
 public final class ProfileKeyPairBasedSecurityManager implements IConnectionSecurityManager
 {
@@ -57,55 +55,22 @@ public final class ProfileKeyPairBasedSecurityManager implements IConnectionSecu
         validator = getSignatureValidator();
     }
 
-    private static ArgumentHandler getArgumentHandler() {
-        try {
-            final Field argumentHandlerField = Launcher.class.getDeclaredField("argumentHandler");
-            argumentHandlerField.setAccessible(true);
-            return (ArgumentHandler) argumentHandlerField.get(Launcher.INSTANCE);
-        }
-        catch (NoSuchFieldException | IllegalAccessException | ClassCastException e)
-        {
-            throw new RuntimeException("Failed to get the argument handler used to start the system", e);
-        }
+    private static ProgramArgs getLaunchArguments() {
+        return FMLLoader.getCurrent().getProgramArgs();
     }
 
-    private static String[] getLaunchArguments() {
-        final ArgumentHandler argumentHandler = getArgumentHandler();
-        try {
-            final Field argsArrayField = ArgumentHandler.class.getDeclaredField("args");
-            argsArrayField.setAccessible(true);
-            return (String[]) argsArrayField.get(argumentHandler);
-        }
-        catch (NoSuchFieldException | IllegalAccessException | ClassCastException e)
-        {
-            throw new RuntimeException("Failed to get the launch arguments used to start the system", e);
-        }
-    }
-
-    private static String getAccessToken() {
-        final String[] arguments = getLaunchArguments();
-        for (int i = 0; i < arguments.length; i++)
-        {
-            final String arg = arguments[i];
-            if (Objects.equals(arg, "--accessToken")) {
-                return arguments[i+1];
-            }
-        }
-
-        return "";
+    private static @Nullable String getAccessToken() {
+        return getLaunchArguments().get("accessToken");
     }
 
     private static UUID getSessionId() {
-        final String[] arguments = getLaunchArguments();
-        for (int i = 0; i < arguments.length; i++)
-        {
-            final String arg = arguments[i];
-            if (Objects.equals(arg, "--uuid")) {
-                return UUID.fromString(arguments[i+1].replaceFirst("(\\w{8})(\\w{4})(\\w{4})(\\w{4})(\\w{12})", "$1-$2-$3-$4-$5"));
-            }
+        final String uuid = getLaunchArguments().get("uuid");
+
+        if(uuid == null || uuid.isBlank()) {
+            return DEFAULT_NILL_UUID;
         }
 
-        return DEFAULT_NILL_UUID;
+        return UUID.fromString(uuid.replaceFirst("(\\w{8})(\\w{4})(\\w{4})(\\w{4})(\\w{12})", "$1-$2-$3-$4-$5"));
     }
 
     private static YggdrasilAuthenticationService getAuthenticationService() {
@@ -115,7 +80,7 @@ public final class ProfileKeyPairBasedSecurityManager implements IConnectionSecu
     private static UserApiService getApiService() {
         final String accessToken = getAccessToken();
         final YggdrasilAuthenticationService authenticationService = getAuthenticationService();
-        if (accessToken.isBlank())
+        if (accessToken == null || accessToken.isBlank())
             return UserApiService.OFFLINE;
 
         return authenticationService.createUserApiService(accessToken);
@@ -459,11 +424,10 @@ public final class ProfileKeyPairBasedSecurityManager implements IConnectionSecu
     @Nullable
     @Override
     public String getUnavailabilityReason() {
-        if (LaunchEnvironmentHandler.INSTANCE.getDist() == Dist.CLIENT) {
-            final String uuid = LaunchEnvironmentHandler.INSTANCE.getUUID();
-            if (uuid == null || uuid.isEmpty()) {
+        if (FMLEnvironment.getDist().isClient()) {
+            if (sessionId.equals(DEFAULT_NILL_UUID)) {
                 // invalid UUID - probably offline mode. not supported
-                LaunchEnvironmentHandler.INSTANCE.addProgressMessage("NO UUID found. Offline mode does not work. No server mods will be downloaded");
+                StartupNotificationManager.locatorConsumer().ifPresent(pm -> pm.accept("NO UUID found. Offline mode does not work. No server mods will be downloaded"));
                 return "There was not a valid UUID present in this client launch. You are probably playing offline mode. Trivially, there is nothing for us to do.";
             }
         }
