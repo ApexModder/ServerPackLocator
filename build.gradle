@@ -26,8 +26,13 @@ sourceSets {
 
 neoForge {
     enable {
-        version = '26.1.0.0-alpha.3+snapshot-1'
+        version = '21.11.17-beta'
         disableRecompilation = System.getenv("CI") == "true"
+    }
+
+    parchment {
+        mappingsVersion = '2025.10.12'
+        minecraftVersion = '1.21.10'
     }
 
     accessTransformers.from("src/utilmod/resources/META-INF/accesstransformer.cfg")
