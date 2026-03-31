@@ -25,11 +25,7 @@ sourceSets {
 }
 
 neoForge {
-    enable {
-        version = '26.1.0.0-alpha.3+snapshot-1'
-        disableRecompilation = System.getenv("CI") == "true"
-    }
-
+    version = '26.1.0.18-beta'
     accessTransformers.from("src/utilmod/resources/META-INF/accesstransformer.cfg")
     validateAccessTransformers = true
 
