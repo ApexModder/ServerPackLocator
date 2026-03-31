@@ -2,7 +2,7 @@ plugins {
     id 'maven-publish'
     id 'net.neoforged.gradleutils'
     id 'net.neoforged.moddev'
-    id 'io.github.goooler.shadow'
+    id 'com.gradleup.shadow'
 }
 
 gradleutils {
