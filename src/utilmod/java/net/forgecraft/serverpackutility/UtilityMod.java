@@ -5,8 +5,8 @@
 
 package net.forgecraft.serverpackutility;
 
-import com.mojang.authlib.GameProfile;
 import net.forgecraft.serverpacklocator.ModAccessor;
+import net.minecraft.server.players.NameAndId;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
@@ -29,7 +29,7 @@ public class UtilityMod {
         var server = startedEvent.getServer();
         ModAccessor.setAllowListStrategy(uuid -> server.submit(() -> {
             if (server.getPlayerList().isUsingWhitelist()) {
-                return server.getPlayerList().getWhiteList().isWhiteListed(new GameProfile(uuid, "")); //Name does not matter
+                return server.getPlayerList().getWhiteList().isWhiteListed(new NameAndId(uuid, "")); //Name does not matter
             } else {
                 return true;
             }
