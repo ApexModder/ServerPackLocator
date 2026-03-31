@@ -25,7 +25,7 @@ sourceSets {
 }
 
 neoForge {
-    version = '26.1.0.18-beta'
+    version = project.neoforgeVersion
     accessTransformers.from("src/utilmod/resources/META-INF/accesstransformer.cfg")
     validateAccessTransformers = true
 
