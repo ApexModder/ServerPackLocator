@@ -66,6 +66,17 @@ configurations {
 def jarUtilMod = tasks.register(sourceSets.utilmod.jarTaskName, Jar) {
     archiveClassifier = "utilmod"
     from(sourceSets.utilmod.output)
+    manifest {
+        attributes(
+                'Specification-Title': project.name,
+                'Specification-Vendor': 'CPW',
+                'Specification-Version': project.version,
+                'Implementation-Title': project.name,
+                'Implementation-Version': project.version,
+                'Implementation-Vendor': 'CPW',
+                'Automatic-Module-Name': 'serverpacklocator',
+        )
+    }
 }
 
 def copyUtilMod = tasks.register("copyUtilMod", Copy) {
