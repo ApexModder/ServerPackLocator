@@ -4,8 +4,8 @@ import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.mojang.realmsclient.client.RealmsClient;
 import net.forgecraft.serverpacklocator.ModAccessor;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.GameLoadCookie;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.main.GameConfig;
 import net.minecraft.client.multiplayer.resolver.ServerAddress;
@@ -13,8 +13,7 @@ import org.jetbrains.annotations.Nullable;
 import org.spongepowered.asm.mixin.Mixin;
 
 @Mixin(Gui.class)
-public abstract class MinecraftMixin {
-
+public abstract class GuiMixin {
     @WrapMethod(method = "buildInitialScreens")
     private Runnable serverpacklocator$buildInitialScreens(@Nullable GameLoadCookie cookie, Operation<Runnable> operation) {
         // parse server address
